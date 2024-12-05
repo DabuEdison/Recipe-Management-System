@@ -1,36 +1,54 @@
 <script>
-    import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-    import { firebaseConfig } from "$lib/firebaseConfig";
-    import { initializeApp, getApps, getApp } from "firebase/app";
-    
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const auth = getAuth(app);
-    
-    let email = '';
-    let password = '';
-    
-    // Function to handle login logic using Firebase Authentication
-    const handleLogin = async () => {
-      try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        console.log('Login successful:', userCredential.user);
-        alert('Login successful!');
-        // Redirect to home page
+  import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+  import { firebaseConfig } from "$lib/firebaseConfig";
+  import { initializeApp, getApps, getApp } from "firebase/app";
+
+  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  const auth = getAuth(app);
+
+  let email = '';
+  let password = '';
+  let message = ''; // Message content
+  let messageType = ''; // Message type: success or error
+
+  // Function to handle login logic using Firebase Authentication
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('Login successful:', userCredential.user);
+
+      // Display success toast
+      showMessage('Login successful!', 'success');
+
+      // Redirect to home page after a short delay
+      setTimeout(() => {
         window.location.href = '/Add-Recipe';
-      } catch (error) {
-        // @ts-ignore
-        console.error('Error logging in:', error.message);
-        alert('Invalid email or password!');
-      }
-    };
-    
-    // Redirect to signup page
-    const redirectToSignup = () => {
-      window.location.href = '/Signup';
-    };
-  </script>
-  
-  
+      }, 2000);
+    } catch (error) {
+      // @ts-ignore
+      console.error('Error logging in:', error.message);
+      // Display error toast
+      showMessage('Invalid email or password!', 'error');
+    }
+  };
+
+  // Function to redirect to signup page
+  const redirectToSignup = () => {
+    window.location.href = '/Signup';
+  };
+
+  // Function to show toast message
+  // @ts-ignore
+  const showMessage = (msg, type) => {
+    message = msg;
+    messageType = type;
+    setTimeout(() => {
+      message = '';
+      messageType = '';
+    }, 3000); // Toast disappears after 3 seconds
+  };
+</script>
+
   
 
 <!-- src/app.html -->
@@ -46,11 +64,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(0deg, #475C7A, #AB6C82);
+  background: linear-gradient(0deg, #31578d, #AB6C82);
   background-size: cover;
   background-position: center center;
 }
-
 .login-container {
   text-align: center;
   color: white;
@@ -176,9 +193,59 @@
     padding: 15px;
   }
 }
-</style>
+/* Toast Notification */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 15px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
 
+.toast.success {
+  background-color: #4caf50; /* Green for success */
+}
+
+.toast.error {
+  background-color: #f44336; /* Red for error */
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeout {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+</style>
 <div class="login-container">
+  <!-- Toast Notification -->
+  {#if message}
+    <div class="toast {messageType}">
+      {message}
+    </div>
+  {/if}
+
   <div class="login-box">
     <h2>LOGIN</h2>
     <form on:submit|preventDefault={handleLogin}>

@@ -1,56 +1,65 @@
 <script>
-    import { getFirestore, collection, addDoc } from 'firebase/firestore';
-    import { firebaseConfig } from "$lib/firebaseConfig";
-    import { initializeApp, getApps, getApp } from "firebase/app";
-    import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+  import { getFirestore, collection, addDoc } from 'firebase/firestore';
+  import { firebaseConfig } from "$lib/firebaseConfig";
+  import { initializeApp, getApps, getApp } from "firebase/app";
+  import { getAuth, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
   
-    // Initialize Firebase app
-    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-    const db = getFirestore(app);
-    const auth = getAuth(app);
+  // Initialize Firebase app
+  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+  const db = getFirestore(app);
+  const auth = getAuth(app);
   
-    let username = '';
-    let email = '';
-    let password = '';
-    let confirmPassword = '';
+  let username = '';
+  let email = '';
+  let password = '';
+  let confirmPassword = '';
   
-    const handleSignup = async () => {
-      if (password !== confirmPassword) {
-        alert('Passwords do not match!');
-        return;
-      }
-  
-      try {
-        // Create user in Firebase Authentication
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-  
-        // Update user profile with username
-        await updateProfile(userCredential.user, { displayName: username });
-  
-        // Save user details in Firestore
-        const userDocRef = await addDoc(collection(db, "users"), {
-          uid: userCredential.user.uid,
-          username: username,
-          email: email,
-          createdAt: new Date()
-        });
-  
-        console.log('User created with ID:', userDocRef.id);
-        alert('Signup successful!');
-        
-        // Redirect to login or another page
-        window.location.href = '/';
-      } catch (error) {
-        console.error("Error signing up:", error);
-        alert(error.message);
-      }
-    };
-  
-    const redirectToLogin = () => {
+  const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match!');
+      return;
+    }
+
+    // Show confirmation dialog before proceeding
+    const confirmation = confirm("Are you sure you want to sign up with this information?");
+    
+    if (!confirmation) {
+      console.log("User canceled the signup process.");
+      return; // Exit if the user cancels
+    }
+
+    try {
+      // Create user in Firebase Authentication
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Update user profile with username
+      await updateProfile(userCredential.user, { displayName: username });
+
+      // Save user details in Firestore
+      const userDocRef = await addDoc(collection(db, "users"), {
+        uid: userCredential.user.uid,
+        username: username,
+        email: email,
+        createdAt: new Date()
+      });
+
+      console.log('User created with ID:', userDocRef.id);
+      alert('Signup successful!');
+      
+      // Redirect to login or another page
       window.location.href = '/';
-    };
-  </script>
-  
+    } catch (error) {
+      console.error("Error signing up:", error);
+      // @ts-ignore
+      alert(error.message);
+    }
+  };
+
+  const redirectToLogin = () => {
+    window.location.href = '/';
+  };
+</script>
+
   <head>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   </head>
